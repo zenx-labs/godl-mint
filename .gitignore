@@ -1,0 +1,11 @@
+.DS_Store
+target
+test-ledger
+wallets
+.env
+.devcontainer
+.claude
+config
+scripts
+wallets
+.env

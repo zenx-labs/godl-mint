@@ -1,0 +1,23 @@
+[package]
+name = "godl-mint-program"
+description.workspace = true
+version.workspace = true
+edition.workspace = true
+homepage.workspace = true
+readme.workspace = true
+keywords.workspace = true
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "godl_mint"
+
+[features]
+default = []
+
+[dependencies]
+godl-mint-api.workspace = true
+solana-program.workspace = true
+solana-security-txt.workspace = true
+spl-token.workspace = true
+steel.workspace = true
+

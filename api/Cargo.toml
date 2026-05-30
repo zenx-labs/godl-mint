@@ -1,0 +1,16 @@
+[package]
+name = "godl-mint-api"
+description.workspace = true
+version.workspace = true
+edition.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+
+[dependencies]
+bytemuck.workspace = true
+num_enum.workspace = true
+serde.workspace = true
+solana-program.workspace = true
+spl-token.workspace = true
+spl-associated-token-account.workspace = true
+steel.workspace = true

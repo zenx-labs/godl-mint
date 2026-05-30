@@ -1,0 +1,20 @@
+[package]
+name = "godl-cli"
+version.workspace = true
+edition.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+publish = false
+
+[features]
+no-entrypoint = []
+default = []
+
+[dependencies]
+anyhow.workspace = true
+bincode = "1.3.3"
+godl-mint-api = { path = "../api" }
+solana-client.workspace = true
+solana-sdk.workspace = true
+steel.workspace = true
+tokio.workspace = true
