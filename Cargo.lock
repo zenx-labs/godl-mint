@@ -1507,6 +1507,7 @@ version = "3.1.0"
 dependencies = [
  "anyhow",
  "bincode",
+ "bs58",
  "clap",
  "dotenvy",
  "godl-mint-api",

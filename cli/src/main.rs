@@ -32,6 +32,11 @@ enum Command {
     Clock,
     /// Initialize the program authority
     Init,
+    /// Sign and execute a base58-encoded Solana transaction
+    Execute {
+        /// Base58-encoded serialized transaction
+        transaction: String,
+    },
 }
 
 #[tokio::main]
@@ -51,6 +56,11 @@ async fn main() -> Result<(), anyhow::Error> {
                 .map_err(|e| anyhow::anyhow!("Failed to read keypair file: {e}"))?;
             init(&rpc, &payer).await?;
         }
+        Command::Execute { transaction } => {
+            let payer = read_keypair_file(&cli.keypair)
+                .map_err(|e| anyhow::anyhow!("Failed to read keypair file: {e}"))?;
+            execute(&rpc, &payer, &transaction).await?;
+        }
     };
 
     Ok(())
@@ -60,6 +70,34 @@ async fn init(rpc: &RpcClient, payer: &Keypair) -> Result<(), anyhow::Error> {
     let ix = godl_mint_api::sdk::init(payer.pubkey());
     submit_transaction(rpc, payer, &[ix]).await?;
     Ok(())
+}
+
+async fn execute(rpc: &RpcClient, payer: &Keypair, encoded: &str) -> Result<(), anyhow::Error> {
+    let bytes = bs58::decode(encoded.trim())
+        .into_vec()
+        .map_err(|e| anyhow::anyhow!("Failed to decode base58 transaction: {e}"))?;
+
+    let mut transaction: Transaction = bincode::deserialize(&bytes)
+        .map_err(|e| anyhow::anyhow!("Failed to deserialize transaction: {e}"))?;
+
+    // Refresh the blockhash so the transaction is valid at submission time
+    // (e.g. tools like `solana-verify export-pda-tx` emit it unsigned with a
+    // blank blockhash). This invalidates any pre-existing signatures.
+    let recent_blockhash = rpc.get_latest_blockhash().await?;
+    transaction
+        .try_partial_sign(&[payer], recent_blockhash)
+        .map_err(|e| anyhow::anyhow!("Failed to sign transaction: {e}"))?;
+
+    match rpc.send_and_confirm_transaction(&transaction).await {
+        Ok(signature) => {
+            println!("Transaction submitted: {:?}", signature);
+            Ok(())
+        }
+        Err(e) => {
+            println!("Error submitting transaction: {:?}", e);
+            Err(e.into())
+        }
+    }
 }
 
 async fn log_authority(rpc: &RpcClient) -> Result<(), anyhow::Error> {
