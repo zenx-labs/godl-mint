@@ -17,7 +17,7 @@ pub fn process_mint_godl(accounts: &[AccountInfo<'_>], data: &[u8]) -> ProgramRe
     let authority = authority_info
         .has_seeds(&[AUTHORITY], &godl_mint_api::ID)?
         .as_account_mut::<Authority>(&godl_mint_api::ID)?;
-    let mint = mint_info.has_address(&MINT_ADDRESS)?.as_mint()?;
+    mint_info.has_address(&MINT_ADDRESS)?.as_mint()?;
     to_info.as_associated_token_account(&TREASURY_ADDRESS, &MINT_ADDRESS)?;
     token_program.is_program(&spl_token::ID)?;
 

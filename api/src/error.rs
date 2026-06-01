@@ -6,11 +6,8 @@ pub enum GodlMintError {
     #[error("Max amount exceeded")]
     MaxAmountExceeded = 0,
 
-    #[error("Max supply exceeded")]
-    MaxSupplyExceeded = 1,
-
     #[error("Mint frequency exceeded")]
-    MintFrequencyExceeded = 2,
+    MintFrequencyExceeded = 1,
 }
 
 error!(GodlMintError);

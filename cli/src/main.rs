@@ -1,3 +1,4 @@
+use clap::{Parser, Subcommand};
 use godl_mint_api::state::Authority;
 use solana_client::nonblocking::rpc_client::RpcClient;
 use solana_sdk::{
@@ -8,29 +9,51 @@ use solana_sdk::{
 };
 use steel::{AccountDeserialize, Clock};
 
-#[tokio::main]
-async fn main() {
-    // Read keypair from file
-    let payer =
-        read_keypair_file(&std::env::var("KEYPAIR").expect("Missing KEYPAIR env var")).unwrap();
+#[derive(Parser)]
+#[command(name = "godl", version, about = "CLI for the GODL mint program")]
+struct Cli {
+    /// Solana RPC endpoint
+    #[arg(long, env = "RPC")]
+    rpc: String,
 
-    // Build transaction
-    let rpc = RpcClient::new(std::env::var("RPC").expect("Missing RPC env var"));
-    match std::env::var("COMMAND")
-        .expect("Missing COMMAND env var")
-        .as_str()
-    {
-        "authority" => {
-            log_authority(&rpc).await.unwrap();
+    /// Path to the payer keypair file
+    #[arg(long, env = "KEYPAIR")]
+    keypair: String,
+
+    #[command(subcommand)]
+    command: Command,
+}
+
+#[derive(Subcommand)]
+enum Command {
+    /// Print the on-chain authority account
+    Authority,
+    /// Print the on-chain clock sysvar
+    Clock,
+    /// Initialize the program authority
+    Init,
+}
+
+#[tokio::main]
+async fn main() -> Result<(), anyhow::Error> {
+    // Load environment variables from .env if present
+    dotenvy::dotenv().ok();
+
+    let cli = Cli::parse();
+
+    let rpc = RpcClient::new(cli.rpc);
+
+    match cli.command {
+        Command::Authority => log_authority(&rpc).await?,
+        Command::Clock => log_clock(&rpc).await?,
+        Command::Init => {
+            let payer = read_keypair_file(&cli.keypair)
+                .map_err(|e| anyhow::anyhow!("Failed to read keypair file: {e}"))?;
+            init(&rpc, &payer).await?;
         }
-        "clock" => {
-            log_clock(&rpc).await.unwrap();
-        }
-        "init" => {
-            init(&rpc, &payer).await.unwrap();
-        }
-        _ => panic!("Invalid command"),
     };
+
+    Ok(())
 }
 
 async fn init(rpc: &RpcClient, payer: &Keypair) -> Result<(), anyhow::Error> {

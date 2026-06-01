@@ -13,6 +13,8 @@ default = []
 [dependencies]
 anyhow.workspace = true
 bincode = "1.3.3"
+clap = { version = "4.5", features = ["derive", "env"] }
+dotenvy = "0.15"
 godl-mint-api = { path = "../api" }
 solana-client.workspace = true
 solana-sdk.workspace = true
